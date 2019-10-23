@@ -48,7 +48,7 @@ export function add(d, num, unit) {
     case HOURS:
     case DAY:
     case WEEK:
-      return addMillis(d, num * multiplierMilli[unit])
+      return addMillis(d, num * multiplierMilli[unit], unit)
     case MONTH:
     case YEAR:
     case DECADE:
@@ -59,10 +59,10 @@ export function add(d, num, unit) {
   throw new TypeError('Invalid units: "' + unit + '"')
 }
 
-function addMillis(d, num) {
+function addMillis(d, num, unit) {
   var nextDate = new Date(+(d) + num)
 
-  return solveDST(d, nextDate)
+  return solveDST(d, nextDate, unit)
 }
 
 function addMonths(d, num) {
@@ -87,13 +87,16 @@ function addMonths(d, num) {
   return nextDate
 }
 
-function solveDST(currentDate, nextDate) {
+function solveDST(currentDate, nextDate, unit) {
   var currentOffset = currentDate.getTimezoneOffset()
     , nextOffset = nextDate.getTimezoneOffset()
 
   // if is DST, add the difference in minutes
   // else the difference is zero
-  var diffMinutes = (nextOffset - currentOffset)
+  var diffMinutes = nextOffset - currentOffset
+
+  if (unit === WEEK) diffMinutes = 0
+  if (+currentDate < +nextDate) diffMinutes = Math.abs(diffMinutes)
 
   return new Date(+(nextDate) + diffMinutes * multiplierMilli['minutes'])
 }
